@@ -4,18 +4,22 @@ import { registerSchema } from "@/lib/validation/userSchema";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
-    try {
-        const body = await req.json();
-        const validated = registerSchema.parse(body);
+  try {
+    const body = await req.json();
+    const validated = registerSchema.parse(body);
 
-        const hashedPassword = await bcrypt.hash(validated.password, 10);
+    const hashedPassword = await bcrypt.hash(validated.password, 10);
 
-        const user = await prisma.user.create({
-            data: {
-                name: validated.name,
-                email: validated.email,
-                password: hashedPassword,
-            },
-        });
-    }
+    const user = await prisma.user.create({
+      data: {
+        name: validated.name,
+        email: validated.email,
+        password: hashedPassword,
+      },
+    });
+
+    return NextResponse.json({ user }, { status: 201 });
+  } catch (error) {
+    return NextResponse.json({ error: "회원가입 실패" }, { status: 400 });
+  }
 }
