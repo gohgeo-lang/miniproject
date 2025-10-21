@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile  CustomerProfile?
+  cars     Car[]
+  orders   WashOrder[]
+  payments Payment[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model CustomerProfile {
+  id        String  @id @default(cuid())
+  phone     String
+  address   String?
+  latitude  Float?
+  longitude Float?
+  userId    String  @unique
+  user      User    @relation(fields: [userId], references: [id])
+}
+
+model Car {
+  id     String      @id @default(cuid())
+  brand  String
+  model  String
+  year   Int?
+  size   CarSize
+  plate  String      @unique
+  userId String
+  user   User        @relation(fields: [userId], references: [id])
+  orders WashOrder[]
+}
+
+enum CarSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+model WashOrder {
+  id          String      @id @default(cuid())
+  date        DateTime
+  timeSlot    String
+  status      OrderStatus @default(PENDING)
+  totalPrice  Int
+  serviceType String
+  createdAt   DateTime    @default(now())
+  userId      String
+  carId       String
+  paymentId   String?
+  user        User        @relation(fields: [userId], references: [id])
+  car         Car         @relation(fields: [carId], references: [id])
+  payment     Payment?    @relation(fields: [paymentId], references: [id])
+}
+
+enum OrderStatus {
+  PeNDING
+  CONFIRMED
+  IN_PROGRESS
+  DONE
+  CONCELLED
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  amount    Int
+  method    PaymentMethod
+  status    PaymentStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+  orderId   String?
+  order     WashOrder?    @relation(fields: [orderId], references: [id])
+}
+
+enum PaymentMethod {
+  CARD
+  TRANSFER
+  CASH
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
