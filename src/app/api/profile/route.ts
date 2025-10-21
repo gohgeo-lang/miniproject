@@ -20,6 +20,7 @@ export async function POST(req: Request) {
     return NextResponse.json(profile, { status: 201 });
   } catch (err: any) {
     console.error("프로필 등록 실패:", err);
+
+    return NextResponse.json({ error: err.message }, { status: 400 });
   }
-  return NextResponse.json({ error: err.message }, { status: 400 });
 }
